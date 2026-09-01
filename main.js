@@ -27,28 +27,58 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Form submission handler
-document.getElementById('contactForm').addEventListener('submit', function(e) {
+// Form handling with Formspree
+const contactForm = document.getElementById('contactForm');
+const formStatus = document.getElementById('formStatus');
+const submitBtn = document.getElementById('submitBtn');
+const btnText = document.getElementById('btnText');
+const btnIcon = document.getElementById('btnIcon');
+
+contactForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const name = document.getElementById('name').value;
-    const service = document.getElementById('service').value;
+    // Show loading state
+    submitBtn.disabled = true;
+    btnText.textContent = 'Sending...';
+    btnIcon.className = 'fas fa-spinner fa-spin';
+
+    const formData = new FormData(contactForm);
     
-    let serviceName = '';
-    switch(service) {
-        case 'flyer': serviceName = 'Flyer Design'; break;
-        case 'web1': serviceName = '1 Page Website'; break;
-        case 'web3': serviceName = '3 Page Website'; break;
-        case 'web5': serviceName = '5 Page Website'; break;
-        default: serviceName = 'Custom Project';
+    try {
+        const response = await fetch(contactForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // Success
+            formStatus.className = 'form-status success show';
+            formStatus.textContent = 'Thanks! Your message has been sent. I\'ll respond within 2 hours.';
+            contactForm.reset();
+        } else {
+            // Error
+            throw new Error('Form submission failed');
+        }
+    } catch (error) {
+        formStatus.className = 'form-status error show';
+        formStatus.textContent = 'Oops! Something went wrong. Please email me directly at trevorosteph@gmail.com';
+    } finally {
+        // Reset button
+        submitBtn.disabled = false;
+        btnText.textContent = 'Send Message';
+        btnIcon.className = 'fas fa-paper-plane';
+        
+        // Hide status after 5 seconds
+        setTimeout(() => {
+            formStatus.classList.remove('show');
+        }, 5000);
     }
-    
-    alert(`Thanks ${name}! Your request for ${serviceName} has been received. I'll respond within 2 hours.`);
-    
-    this.reset();
 });
 
-// Add scroll effect to navbar
+// Navbar scroll effect
 window.addEventListener('scroll', () => {
     const navbar = document.querySelector('.navbar');
     if (window.scrollY > 100) {
